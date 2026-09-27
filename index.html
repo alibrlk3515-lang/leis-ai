@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Leis AI</title>
+<link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;600&family=Google+Sans+Display:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#1c1c1e;--surface:#2c2c2e;--surface2:#3a3a3c;--surface3:#48484a;
+  --border:rgba(255,255,255,0.08);--border2:rgba(255,255,255,0.14);
+  --text:#e8eaed;--text2:#9aa0a6;--text3:#5f6368;
+  --accent:#8ab4f8;--accent2:#aecbfa;--accent-dark:#174ea6;
+  --green:#34a853;--red:#ea4335;
+  --grad:linear-gradient(135deg,#4285f4,#9b59b6,#e91e63);
+  --radius:12px;--radius-lg:20px;
+  --font:'Google Sans',system-ui,sans-serif;
+}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:var(--font);font-size:15px}
+
+.screen{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity .35s,transform .35s;z-index:10}
+.screen.hidden{opacity:0;pointer-events:none;transform:translateY(20px)}
+
+.logo-mark{width:48px;height:48px;border-radius:50%;background:var(--grad);display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:600;color:#fff;flex-shrink:0}
+.logo-mark.sm{width:36px;height:36px;font-size:16px}
+.logo-text{font-family:'Google Sans Display',sans-serif;font-size:26px;font-weight:500;letter-spacing:-.5px;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+
+/* AUTH */
+#auth-screen{background:var(--bg)}
+.auth-card{background:var(--surface);border:1px solid var(--border2);border-radius:24px;padding:40px 36px;width:100%;max-width:400px;display:flex;flex-direction:column;gap:20px}
+.auth-header{display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center}
+.auth-header h1{font-size:22px;font-weight:500}
+.auth-header p{font-size:14px;color:var(--text2);line-height:1.5}
+.auth-tabs{display:flex;background:var(--surface2);border-radius:10px;padding:3px;gap:3px}
+.auth-tab{flex:1;padding:8px;border:none;border-radius:8px;font-family:var(--font);font-size:14px;font-weight:500;cursor:pointer;transition:all .2s;color:var(--text2);background:transparent}
+.auth-tab.active{background:var(--surface3);color:var(--text)}
+.field{display:flex;flex-direction:column;gap:6px}
+.field label{font-size:13px;font-weight:500;color:var(--text2)}
+.field input{background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:11px 14px;font-family:var(--font);font-size:15px;color:var(--text);outline:none;transition:border-color .2s}
+.field input:focus{border-color:var(--accent)}
+.field input::placeholder{color:var(--text3)}
+.btn-primary{background:var(--accent);color:#0d1b2a;border:none;border-radius:10px;padding:13px;font-family:var(--font);font-size:15px;font-weight:600;cursor:pointer;transition:opacity .2s}
+.btn-primary:hover{opacity:.88}
+.btn-primary:disabled{opacity:.45;cursor:not-allowed}
+.auth-err{font-size:13px;color:var(--red);text-align:center;min-height:16px}
+.divider{display:flex;align-items:center;gap:12px;color:var(--text3);font-size:13px}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--border2)}
+.btn-google{display:flex;align-items:center;justify-content:center;gap:10px;background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:11px;font-family:var(--font);font-size:14px;font-weight:500;color:var(--text);cursor:pointer;transition:background .2s}
+.btn-google:hover{background:var(--surface3)}
+
+/* APP */
+#app-screen{background:var(--bg);flex-direction:row;justify-content:flex-start;align-items:stretch}
+
+.sidebar{width:280px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:16px 12px;gap:4px;flex-shrink:0;height:100%;overflow-y:auto}
+.sidebar-header{display:flex;align-items:center;gap:10px;padding:8px 10px 16px}
+.sidebar-header .logo-text{font-size:20px}
+.sidebar-new-chat{display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:10px;cursor:pointer;color:var(--text);font-size:14px;font-weight:500;border:none;background:transparent;width:100%;transition:background .2s}
+.sidebar-new-chat:hover{background:var(--surface2)}
+.sidebar-new-chat svg{flex-shrink:0;color:var(--accent)}
+.sidebar-section{font-size:12px;font-weight:500;color:var(--text3);padding:12px 12px 6px;letter-spacing:.3px}
+.chat-item{padding:8px 12px;border-radius:10px;cursor:pointer;color:var(--text2);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:background .2s;display:flex;align-items:center;gap:8px}
+.chat-item:hover{background:var(--surface2);color:var(--text)}
+.chat-item svg{flex-shrink:0;opacity:.6}
+.sidebar-bottom{margin-top:auto;padding-top:12px;border-top:1px solid var(--border)}
+.user-chip{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px}
+.user-avatar-sb{width:32px;height:32px;border-radius:50%;background:var(--grad);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;color:#fff;flex-shrink:0}
+.user-info{display:flex;flex-direction:column;min-width:0}
+.user-name{font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.user-email-txt{font-size:11px;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.btn-logout{margin-left:auto;background:none;border:none;color:var(--text3);cursor:pointer;padding:4px;border-radius:6px;display:flex}
+.btn-logout:hover{color:var(--text);background:var(--surface3)}
+
+.chat-main{flex:1;display:flex;flex-direction:column;height:100%;min-width:0}
+.chat-topbar{display:flex;align-items:center;gap:12px;padding:14px 20px;border-bottom:1px solid var(--border);flex-shrink:0}
+.chat-topbar h2{font-size:16px;font-weight:500}
+.model-badge{margin-left:auto;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:5px 10px;font-size:12px;color:var(--text2);display:flex;align-items:center;gap:6px}
+.model-dot{width:6px;height:6px;border-radius:50%;background:var(--green)}
+
+.messages{flex:1;overflow-y:auto;padding:24px 20px;display:flex;flex-direction:column;gap:0;scroll-behavior:smooth}
+.messages::-webkit-scrollbar{width:4px}
+.messages::-webkit-scrollbar-thumb{background:var(--surface3);border-radius:2px}
+
+.welcome{display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;gap:20px;text-align:center;padding:40px 20px}
+.welcome-grad{font-family:'Google Sans Display',sans-serif;font-size:36px;font-weight:500;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1.2}
+.welcome-sub{font-size:16px;color:var(--text2);max-width:440px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:8px}
+.chip{padding:8px 16px;border-radius:20px;background:var(--surface);border:1px solid var(--border2);font-size:14px;color:var(--text2);cursor:pointer;transition:all .2s}
+.chip:hover{background:var(--surface2);color:var(--text);border-color:var(--accent)}
+
+.msg-row{display:flex;gap:12px;padding:10px 0;max-width:780px;width:100%;margin:0 auto;align-items:flex-start}
+.msg-row.user-row{justify-content:flex-end}
+.msg-av{width:32px;height:32px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;color:#fff}
+.bubble{max-width:680px;padding:14px 18px;border-radius:18px;font-size:15px;line-height:1.65;word-break:break-word}
+.user-row .bubble{background:#1a3a5c;border:1px solid #2a5a8c;border-bottom-right-radius:4px}
+.ai-row .bubble{background:var(--surface);border:1px solid var(--border);border-bottom-left-radius:4px}
+.bubble p{margin-bottom:10px}.bubble p:last-child{margin-bottom:0}
+.bubble strong{color:var(--accent2)}
+.bubble code{background:var(--surface2);padding:2px 6px;border-radius:5px;font-size:13px;font-family:monospace}
+.bubble pre{background:var(--surface2);padding:14px;border-radius:10px;overflow-x:auto;margin:10px 0}
+.bubble pre code{background:none;padding:0}
+.bubble ul,.bubble ol{padding-left:20px;margin:8px 0}
+.bubble li{margin:4px 0}
+.bubble h1{font-size:20px;font-weight:600;margin:14px 0 8px;color:var(--accent2)}
+.bubble h2{font-size:17px;font-weight:500;margin:12px 0 6px;color:var(--accent2)}
+.bubble h3{font-size:15px;font-weight:500;margin:10px 0 5px;color:var(--accent2)}
+.sources-bar{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;padding-top:10px;border-top:1px solid var(--border)}
+.src-pill{display:flex;align-items:center;gap:5px;padding:4px 10px;background:var(--surface2);border:1px solid var(--border2);border-radius:20px;font-size:12px;color:var(--accent);text-decoration:none;max-width:180px;transition:background .2s}
+.src-pill:hover{background:var(--surface3)}
+.src-pill span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.thinking-row{display:flex;gap:12px;padding:10px 0;max-width:780px;width:100%;margin:0 auto}
+.thinking{display:flex;align-items:center;gap:10px;color:var(--text3);font-size:13px;padding:14px 18px;background:var(--surface);border:1px solid var(--border);border-radius:18px;border-bottom-left-radius:4px}
+.dots{display:flex;gap:4px}
+.dots span{width:6px;height:6px;border-radius:50%;background:var(--accent);animation:pulse 1.4s infinite}
+.dots span:nth-child(2){animation-delay:.2s}.dots span:nth-child(3){animation-delay:.4s}
+@keyframes pulse{0%,60%,100%{opacity:.3;transform:scale(.85)}30%{opacity:1;transform:scale(1)}}
+
+.input-area{padding:16px 20px 20px;flex-shrink:0;border-top:1px solid var(--border)}
+.input-wrap{max-width:780px;margin:0 auto;background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius-lg);display:flex;flex-direction:column;overflow:hidden;transition:border-color .2s}
+.input-wrap:focus-within{border-color:var(--accent)}
+.input-row{display:flex;align-items:flex-end;gap:8px;padding:12px 14px 8px}
+#msg-input{flex:1;background:none;border:none;outline:none;font-family:var(--font);font-size:15px;color:var(--text);resize:none;max-height:180px;line-height:1.5;min-height:24px}
+#msg-input::placeholder{color:var(--text3)}
+#send-btn{width:36px;height:36px;border-radius:10px;background:var(--accent);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#0d1b2a;flex-shrink:0;transition:opacity .2s}
+#send-btn:disabled{opacity:.4;cursor:not-allowed}
+#send-btn:not(:disabled):hover{opacity:.88}
+.input-tools{display:flex;align-items:center;gap:4px;padding:4px 10px 10px}
+.tool-btn{display:flex;align-items:center;gap:5px;padding:5px 9px;border-radius:8px;background:none;border:none;color:var(--accent);font-family:var(--font);font-size:12px;cursor:default;background:rgba(138,180,248,.1)}
+.input-hint{font-size:11px;color:var(--text3);margin-left:auto;padding-right:4px}
+
+.menu-btn{display:none;background:none;border:none;color:var(--text2);cursor:pointer;padding:6px}
+@media(max-width:720px){
+  .sidebar{position:fixed;inset:0 auto 0 0;z-index:100;transform:translateX(-100%);transition:transform .3s;width:260px}
+  .sidebar.open{transform:translateX(0)}
+  .overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:99}
+  .overlay.show{display:block}
+  .menu-btn{display:flex}
+  .welcome-grad{font-size:26px}
+  .input-hint{display:none}
+}
+</style>
+</head>
+<body>
+
+<!-- AUTH -->
+<div class="screen" id="auth-screen">
+  <div class="auth-card">
+    <div class="auth-header">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div class="logo-mark">L</div>
+        <span class="logo-text">Leis AI</span>
+      </div>
+      <h1>Hoş geldiniz</h1>
+      <p>Web araştırmalı yapay zeka asistanınıza giriş yapın</p>
+    </div>
+    <div class="auth-tabs">
+      <button class="auth-tab active" id="tab-login" onclick="switchTab('login')">Giriş Yap</button>
+      <button class="auth-tab" id="tab-register" onclick="switchTab('register')">Kayıt Ol</button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div class="field" id="name-field" style="display:none">
+        <label>Ad Soyad</label>
+        <input type="text" id="inp-name" placeholder="Adınız ve soyadınız">
+      </div>
+      <div class="field">
+        <label>E-posta</label>
+        <input type="email" id="inp-email" placeholder="ornek@email.com" onkeydown="if(event.key==='Enter')handleAuth()">
+      </div>
+      <div class="field">
+        <label>Şifre</label>
+        <input type="password" id="inp-pass" placeholder="En az 6 karakter" onkeydown="if(event.key==='Enter')handleAuth()">
+      </div>
+      <div class="field" id="pass2-field" style="display:none">
+        <label>Şifre Tekrar</label>
+        <input type="password" id="inp-pass2" placeholder="Şifrenizi tekrar girin" onkeydown="if(event.key==='Enter')handleAuth()">
+      </div>
+    </div>
+    <p class="auth-err" id="auth-err"></p>
+    <button class="btn-primary" id="auth-btn" onclick="handleAuth()">Giriş Yap</button>
+    <div class="divider">veya</div>
+    <button class="btn-google" onclick="googleLogin()">
+      <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+      Google ile devam et
+    </button>
+  </div>
+</div>
+
+<!-- APP -->
+<div class="screen hidden" id="app-screen">
+  <div class="overlay" id="overlay" onclick="closeSidebar()"></div>
+  <div class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="logo-mark sm">L</div>
+      <span class="logo-text">Leis AI</span>
+    </div>
+    <button class="sidebar-new-chat" onclick="newChat()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Yeni sohbet
+    </button>
+    <div class="sidebar-section">SON SOHBETLER</div>
+    <div id="chat-history"></div>
+    <div class="sidebar-bottom">
+      <div class="user-chip">
+        <div class="user-avatar-sb" id="sb-avatar">?</div>
+        <div class="user-info">
+          <span class="user-name" id="sb-name">Kullanıcı</span>
+          <span class="user-email-txt" id="sb-email">email</span>
+        </div>
+        <button class="btn-logout" onclick="logout()" title="Çıkış yap">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="chat-main">
+    <div class="chat-topbar">
+      <button class="menu-btn" onclick="openSidebar()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+      <div class="logo-mark sm">L</div>
+      <h2>Leis AI</h2>
+      <div class="model-badge"><div class="model-dot"></div>Web Araştırma Aktif</div>
+    </div>
+    <div class="messages" id="messages"></div>
+    <div class="input-area">
+      <div class="input-wrap">
+        <div class="input-row">
+          <textarea id="msg-input" placeholder="Leis AI'ya bir şey sorun..." rows="1"
+            onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+          <button id="send-btn" onclick="sendMessage()" disabled>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          </button>
+        </div>
+        <div class="input-tools">
+          <div class="tool-btn">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+            Web araştırma
+          </div>
+          <span class="input-hint">Enter gönder · Shift+Enter yeni satır</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+let currentUser = null;
+let chatHistory = [];
+let isGenerating = false;
+let authMode = 'login';
+let convId = null;
+
+// localStorage helpers
+const getUsers = () => JSON.parse(localStorage.getItem('leis_users') || '{}');
+const saveUsers = u => localStorage.setItem('leis_users', JSON.stringify(u));
+const getConvs = () => JSON.parse(localStorage.getItem('leis_convs') || '{}');
+const saveConvs = c => localStorage.setItem('leis_convs', JSON.stringify(c));
+
+// AUTH
+function switchTab(mode) {
+  authMode = mode;
+  document.getElementById('tab-login').classList.toggle('active', mode === 'login');
+  document.getElementById('tab-register').classList.toggle('active', mode === 'register');
+  document.getElementById('name-field').style.display = mode === 'register' ? '' : 'none';
+  document.getElementById('pass2-field').style.display = mode === 'register' ? '' : 'none';
+  document.getElementById('auth-btn').textContent = mode === 'login' ? 'Giriş Yap' : 'Kayıt Ol';
+  document.getElementById('auth-err').textContent = '';
+}
+
+function handleAuth() {
+  const email = document.getElementById('inp-email').value.trim();
+  const pass = document.getElementById('inp-pass').value;
+  const err = document.getElementById('auth-err');
+  err.textContent = '';
+  if (!email || !pass) { err.textContent = 'E-posta ve şifre gerekli.'; return; }
+  if (!email.includes('@')) { err.textContent = 'Geçerli bir e-posta girin.'; return; }
+  const users = getUsers();
+  if (authMode === 'register') {
+    const name = document.getElementById('inp-name').value.trim();
+    const pass2 = document.getElementById('inp-pass2').value;
+    if (!name) { err.textContent = 'Ad soyad gerekli.'; return; }
+    if (pass.length < 6) { err.textContent = 'Şifre en az 6 karakter.'; return; }
+    if (pass !== pass2) { err.textContent = 'Şifreler eşleşmiyor.'; return; }
+    if (users[email]) { err.textContent = 'Bu e-posta zaten kayıtlı.'; return; }
+    users[email] = { name, email, pass };
+    saveUsers(users);
+    loginUser(users[email]);
+  } else {
+    const u = users[email];
+    if (!u || u.pass !== pass) { err.textContent = 'E-posta veya şifre hatalı.'; return; }
+    loginUser(u);
+  }
+}
+
+function googleLogin() {
+  const users = getUsers();
+  const email = 'demo@gmail.com';
+  if (!users[email]) { users[email] = { name: 'Demo Kullanıcı', email, pass: '' }; saveUsers(users); }
+  loginUser(users[email]);
+}
+
+function loginUser(u) {
+  currentUser = u;
+  localStorage.setItem('leis_session', JSON.stringify(u));
+  document.getElementById('sb-name').textContent = u.name;
+  document.getElementById('sb-email').textContent = u.email;
+  document.getElementById('sb-avatar').textContent = u.name[0].toUpperCase();
+  loadChatList();
+  document.getElementById('auth-screen').classList.add('hidden');
+  document.getElementById('app-screen').classList.remove('hidden');
+  newChat();
+}
+
+function logout() {
+  currentUser = null;
+  localStorage.removeItem('leis_session');
+  chatHistory = [];
+  document.getElementById('app-screen').classList.add('hidden');
+  document.getElementById('auth-screen').classList.remove('hidden');
+  document.getElementById('inp-email').value = '';
+  document.getElementById('inp-pass').value = '';
+}
+
+// CHAT HISTORY
+function loadChatList() {
+  const el = document.getElementById('chat-history');
+  el.innerHTML = '';
+  const convs = getConvs()[currentUser?.email] || {};
+  const entries = Object.entries(convs).sort((a,b) => b[1].ts - a[1].ts).slice(0,20);
+  if (!entries.length) {
+    el.innerHTML = '<div style="padding:8px 12px;font-size:13px;color:var(--text3)">Henüz sohbet yok</div>';
+    return;
+  }
+  entries.forEach(([id, c]) => {
+    const d = document.createElement('div');
+    d.className = 'chat-item';
+    d.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span>${esc(c.title)}</span>`;
+    d.onclick = () => { loadConv(id, c); };
+    el.appendChild(d);
+  });
+}
+
+function loadConv(id, c) {
+  convId = id;
+  chatHistory = c.msgs || [];
+  const el = document.getElementById('messages');
+  el.innerHTML = '';
+  chatHistory.forEach(m => renderBubble(m.role, m.content, m.sources));
+  closeSidebar();
+}
+
+function saveConv(title) {
+  if (!currentUser) return;
+  const all = getConvs();
+  if (!all[currentUser.email]) all[currentUser.email] = {};
+  all[currentUser.email][convId] = { title: title.slice(0,50), ts: Date.now(), msgs: chatHistory };
+  saveConvs(all);
+  loadChatList();
+}
+
+function newChat() {
+  convId = 'c_' + Date.now();
+  chatHistory = [];
+  const el = document.getElementById('messages');
+  const firstName = currentUser ? esc(currentUser.name.split(' ')[0]) : '';
+  el.innerHTML = `
+    <div class="welcome" id="welcome">
+      <div class="welcome-grad">Merhaba, ${firstName} 👋</div>
+      <div class="welcome-sub">Her sorunuzu internette araştırarak güncel ve doğru bilgilerle yanıtlıyorum.</div>
+      <div class="chips">
+        <div class="chip" onclick="sendChip(this)">Bugünün önemli haberleri</div>
+        <div class="chip" onclick="sendChip(this)">Python öğrenmek için nereden başlamalıyım?</div>
+        <div class="chip" onclick="sendChip(this)">En iyi yapay zeka araçları 2025</div>
+        <div class="chip" onclick="sendChip(this)">Sağlıklı beslenme önerileri</div>
+      </div>
+    </div>`;
+  closeSidebar();
+}
+
+// RENDER
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function md(t) {
+  t = esc(t);
+  t = t.replace(/```(\w*)\n?([\s\S]*?)```/g, (_,l,c) => `<pre><code>${c.trim()}</code></pre>`);
+  t = t.replace(/`([^`\n]+)`/g, '<code>$1</code>');
+  t = t.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+  t = t.replace(/\*([^*\n]+)\*/g, '<em>$1</em>');
+  t = t.replace(/^### (.+)$/gm, '<h3>$1</h3>');
+  t = t.replace(/^## (.+)$/gm, '<h2>$1</h2>');
+  t = t.replace(/^# (.+)$/gm, '<h1>$1</h1>');
+  const lines = t.split('\n');
+  const out = []; let inList = false, listTag = 'ul';
+  lines.forEach(ln => {
+    if (/^[-•] /.test(ln)) {
+      if (!inList || listTag !== 'ul') { if(inList) out.push('</'+listTag+'>'); out.push('<ul>'); inList=true; listTag='ul'; }
+      out.push('<li>' + ln.replace(/^[-•] /,'') + '</li>');
+    } else if (/^\d+\. /.test(ln)) {
+      if (!inList || listTag !== 'ol') { if(inList) out.push('</'+listTag+'>'); out.push('<ol>'); inList=true; listTag='ol'; }
+      out.push('<li>' + ln.replace(/^\d+\. /,'') + '</li>');
+    } else {
+      if (inList) { out.push('</'+listTag+'>'); inList=false; }
+      if (ln.trim() && !ln.startsWith('<h')) out.push('<p>' + ln + '</p>');
+      else if (ln.trim()) out.push(ln);
+    }
+  });
+  if (inList) out.push('</'+listTag+'>');
+  return out.join('');
+}
+
+function renderBubble(role, content, sources) {
+  document.getElementById('welcome')?.remove();
+  const msgs = document.getElementById('messages');
+  const row = document.createElement('div');
+  row.className = 'msg-row ' + (role === 'user' ? 'user-row' : 'ai-row');
+
+  let srcHtml = '';
+  if (sources?.length) {
+    srcHtml = '<div class="sources-bar">' + sources.map(s =>
+      `<a class="src-pill" href="${esc(s.url)}" target="_blank" rel="noopener">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+        <span>${esc(s.title)}</span>
+      </a>`).join('') + '</div>';
+  }
+
+  const initials = role === 'user' && currentUser ? currentUser.name[0].toUpperCase() : 'L';
+
+  if (role === 'user') {
+    row.innerHTML = `<div class="bubble">${md(content)}</div>
+      <div class="msg-av" style="background:var(--accent-dark);color:var(--accent2)">${initials}</div>`;
+  } else {
+    row.innerHTML = `<div class="msg-av" style="background:var(--grad)">${initials === 'L' ? 'L' : initials}</div>
+      <div class="bubble">${md(content)}${srcHtml}</div>`;
+  }
+
+  msgs.appendChild(row);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function showThinking() {
+  document.getElementById('welcome')?.remove();
+  const msgs = document.getElementById('messages');
+  const row = document.createElement('div');
+  row.className = 'thinking-row';
+  row.id = 'thinking-row';
+  row.innerHTML = `<div class="msg-av" style="background:var(--grad)">L</div>
+    <div class="thinking">
+      <div class="dots"><span></span><span></span><span></span></div>
+      <span style="color:var(--accent)">🌐 Web araştırıyor...</span>
+    </div>`;
+  msgs.appendChild(row);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+// SEND
+async function sendMessage() {
+  if (isGenerating) return;
+  const inp = document.getElementById('msg-input');
+  const text = inp.value.trim();
+  if (!text) return;
+  inp.value = '';
+  inp.style.height = 'auto';
+  document.getElementById('send-btn').disabled = true;
+
+  renderBubble('user', text);
+  chatHistory.push({ role: 'user', content: text });
+  isGenerating = true;
+  showThinking();
+
+  try {
+    const res = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ messages: chatHistory })
+    });
+
+    if (!res.ok) throw new Error('Sunucu hatası: ' + res.status);
+    const data = await res.json();
+    const raw = data.content?.map(b => b.text || '').join('') || 'Bir hata oluştu.';
+
+    let reply = raw, sources = [];
+    const m = raw.match(/###SOURCES###\s*([\s\S]*?)###END###/);
+    if (m) {
+      try { sources = JSON.parse(m[1].trim()); } catch(e) {}
+      reply = raw.replace(/###SOURCES###[\s\S]*?###END###/, '').trim();
+    }
+
+    document.getElementById('thinking-row')?.remove();
+    chatHistory.push({ role: 'assistant', content: reply, sources });
+    renderBubble('assistant', reply, sources);
+    saveConv(chatHistory[0]?.content || 'Sohbet');
+
+  } catch(e) {
+    document.getElementById('thinking-row')?.remove();
+    renderBubble('assistant', '⚠️ Hata: ' + e.message + '\n\nLütfen API key\'in doğru eklendiğinden emin olun.');
+  }
+
+  isGenerating = false;
+  document.getElementById('send-btn').disabled = false;
+  inp.focus();
+}
+
+function sendChip(el) { document.getElementById('msg-input').value = el.textContent; sendMessage(); }
+function handleKey(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } }
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 180) + 'px';
+  document.getElementById('send-btn').disabled = !el.value.trim() || isGenerating;
+}
+function openSidebar() { document.getElementById('sidebar').classList.add('open'); document.getElementById('overlay').classList.add('show'); }
+function closeSidebar() { document.getElementById('sidebar').classList.remove('open'); document.getElementById('overlay').classList.remove('show'); }
+
+// INIT
+(function(){
+  const s = localStorage.getItem('leis_session');
+  if (s) {
+    try {
+      const u = JSON.parse(s);
+      const users = getUsers();
+      if (u && users[u.email]) loginUser(users[u.email]);
+      else newChat();
+    } catch(e) { newChat(); }
+  }
+})();
+</script>
+</body>
+</html>
